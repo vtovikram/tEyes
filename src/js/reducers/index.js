@@ -1,1 +1,1 @@
-export counter from './counter.reducer';
+export busRoutes from './busRoutes.reducer';

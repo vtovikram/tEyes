@@ -6,6 +6,8 @@ import neighbourhoods from '../../assets/data/neighborhoods.json';
 import streets from '../../assets/data/streets.json';
 import { geoMercator, geoPath  } from 'd3-geo';
 
+import {buslocations, busRoutes} from '../actions/busRoutes.action';
+
 
 
 class SfoMap extends Component {
@@ -17,10 +19,15 @@ class SfoMap extends Component {
       freeWays: [],
       neighbourhoods: [],
       streets: [],
+      buses: [],
     }
   }
 
+
   componentDidMount() {
+    this.interval = setInterval(() =>{
+      this.props.buslocations();
+    }, 15000);
     this.handleResize();
     this.setState({arteries: arteries.features});
     this.setState({freeWays: freeWays.features});
@@ -45,6 +52,13 @@ class SfoMap extends Component {
     })
   }
 
+  projection() {
+  const { height, width } = this.state.mapSize;
+  return geoMercator()
+  .scale(150)
+  .fitSize([width, height], arteries);
+}
+
   drawMap() {
     const { height, width } = this.state.mapSize;
     const projection = geoMercator()
@@ -52,7 +66,6 @@ class SfoMap extends Component {
       .fitSize([width, height], arteries);
 
     const pathGenerator = geoPath().projection(projection);
-
 
     this.arteries = this.state.arteries
       .map((d, idx) => {
@@ -101,18 +114,32 @@ class SfoMap extends Component {
         strokeDasharray="3"
         cursor="pointer"
         className="neighbourhoods"/>})
-
-
+  }
+  drawCircles (buses) {
+    if(buses) {
+      this.buses = buses
+              .map((city, i) => {
+                return <circle
+                  key={ `marker-${i}` }
+                  cx={ this.projection()(city.coordinates)[0] }
+                  cy={ this.projection()(city.coordinates)[1] }
+                  r={'3px'}
+                  fill="#E91E63"
+                  className="marker"/>})
+    }
 
   }
 
+
+
   render() {
     this.drawMap();
-
+    this.drawCircles(this.props.buses);
     return (
       <div className='map'>
           <svg width={ '100vw' } height={ '100vh' } ref={(mapSVG) => this.mapSVG = mapSVG}>
               <g>{this.arteries}{this.streets}{this.freeWays}{this.neighbourhoods}</g>
+              {this.props.buses && this.buses}
           </svg>
       </div>
     )
@@ -120,6 +147,6 @@ class SfoMap extends Component {
 }
 
 export default connect(
-    state => ({counter: state.counter}),
-    {}
+    state => ({buses: state.busRoutes.busLocations}),
+    {buslocations, busRoutes}
 )(SfoMap);

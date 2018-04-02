@@ -11,6 +11,8 @@ export default class extends Component {
     return (
       <div>
         <div>
+          <div>sf-muni  Route = N </div>
+          <div>Updates Every 15 seconds</div>
           <SfoMap />
         </div>
       </div>
